@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  stroke: #999;
+  stroke-opacity: .6;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+var width = 960,
+    height = 500;
+
+var color = d3.scale.category20();
+
+var force = d3.layout.force()
+    .charge(-120)
+    .linkDistance(30)
+    .size([width, height]);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+d3.json("data.json", function(error, graph) {
+  force
+      .nodes(graph.nodes)
+      .links(graph.links)
+      .start();
+  var demand = graph.nodes[0];
+  var link = svg.selectAll(".link")
+      .data(graph.links)
+    .enter().append("line")
+      .attr("class", "link");
+  var max_y = 0;
+  var max_x = 0;
+  var max_r = 0;
+  for(var i = 0; i < graph.nodes.length; i++) {
+    max_y = Math.max(max_y, Math.abs(graph.nodes[i].lat - demand.lat));
+    max_x = Math.max(max_x, Math.abs(graph.nodes[i].long - demand.long));
+    max_r = Math.max(max_r, graph.nodes[i].size);
+  }
+  var xScale = d3.scale.linear().domain([-max_x - 10, max_x + 10]).range([0, width]);
+  var yScale = d3.scale.linear().domain([-max_y - 10, max_y + 10]).range([height, 0]);
+  var rScale = d3.scale.linear().domain([0, max_r]).range([0, 200]);
+
+  var node = svg.selectAll(".node")
+      .data(graph.nodes)
+    .enter().append("circle")
+      .attr("class", "node")
+      .style("fill", function(d) { if (d.name == demand.name) {return "red";} else {return "blue";} })
+      .attr("r", function(d) { return rScale(Math.sqrt(d.size)); })
+      .attr("fixed", true);
+
+  node.append("svg:title")
+      .text(function(d) { return d.name + ":" + d.size; });
+
+  force.on("tick", function() {
+    link.attr("y1", function(d) { return yScale(d.source.lat - demand.lat); })
+        .attr("x1", function(d) { return xScale(d.source.long - demand.long); })
+        .attr("y2", function(d) { return yScale(d.target.lat - demand.lat); })
+        .attr("x2", function(d) { return xScale(d.target.long - demand.long); });
+
+    node.attr("cy", function(d) { return yScale(d.lat - demand.lat); })
+        .attr("cx", function(d) { return xScale(d.long - demand.long); });
+  });
+});
+
+</script>

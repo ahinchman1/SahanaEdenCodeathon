@@ -1,0 +1,5 @@
+{name: "Merritt Island", latitude: 3, longitude: 4, time: 30, inventory: 200},
+						{name: "Port St. John", latitude: 5, longitude: 6, time: 12, inventory: 700},
+						{name: "Cocoa Beach",  latitude: 7, longitude: 8, time: 35, inventory: 50}
+						
+						, longitude: 2, time: 40, inventory: 500},
